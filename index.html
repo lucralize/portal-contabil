@@ -740,13 +740,14 @@ async function carregarUsuarios(){
   if(error){ body.innerHTML='<tr><td colspan="5" class="text-danger p-3">'+error.message+'</td></tr>'; return; }
   _usuarios=data;
   body.innerHTML=data.map(u=>{
-    const eu=u.email===_userEmail;
-    return `<tr><td>${u.email}${eu?' <span class="badge bg-secondary">você</span>':''}</td><td>${u.nome||''}</td>
-      <td><select class="form-select form-select-sm" ${eu?'disabled':''} onchange="mudarPapelUsuario('${u.email}',this.value)">
+    const eu=u.email===_userEmail, sup=!!u.super_admin;
+    const trava=eu||sup;
+    return `<tr><td>${u.email}${eu?' <span class="badge bg-secondary">você</span>':''}${sup?' <span class="badge bg-primary" title="Protegido: não pode ser excluído, desativado ou rebaixado">super admin</span>':''}</td><td>${u.nome||''}</td>
+      <td><select class="form-select form-select-sm" ${trava?'disabled':''} onchange="mudarPapelUsuario('${u.email}',this.value)">
         ${['admin','operador','leitura'].map(p=>`<option value="${p}" ${u.papel===p?'selected':''}>${p}</option>`).join('')}</select></td>
-      <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" ${u.ativo?'checked':''} ${eu?'disabled':''} onchange="mudarAtivoUsuario('${u.email}',this.checked)"></div></td>
-      <td class="text-end"><button class="btn btn-outline-secondary btn-sm me-1" onclick="redefinirSenhaUsuario('${u.email}')">Redefinir senha</button>
-        <button class="btn btn-outline-danger btn-sm" ${eu?'disabled':''} onclick="excluirUsuario('${u.email}')"><i class="bi bi-trash"></i></button></td></tr>`;
+      <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" ${u.ativo?'checked':''} ${trava?'disabled':''} aria-label="Ativo" onchange="mudarAtivoUsuario('${u.email}',this.checked)"></div></td>
+      <td class="text-end">${sup?'':`<button class="btn btn-outline-secondary btn-sm me-1" onclick="redefinirSenhaUsuario('${u.email}')">Redefinir senha</button>
+        <button class="btn btn-outline-danger btn-sm" ${eu?'disabled':''} onclick="excluirUsuario('${u.email}')" aria-label="Excluir usuário"><i class="bi bi-trash"></i></button>`}</td></tr>`;
   }).join('')||'<tr><td colspan="5" class="text-muted p-3">Nenhum usuário.</td></tr>';
 }
 async function criarUsuario(){
